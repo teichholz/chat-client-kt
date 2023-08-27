@@ -1,4 +1,3 @@
-package service
+package services
 
-class User {
-}
+data class User(val name: String, val icon: Any) {}
