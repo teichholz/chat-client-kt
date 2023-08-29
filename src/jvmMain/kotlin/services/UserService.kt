@@ -6,4 +6,8 @@ class UserService {
             User("User $it", Any())
         }
     }
+
+    fun isEmailTaken(email: String): Boolean {
+        return false;
+    }
 }

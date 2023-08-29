@@ -1,9 +1,10 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.asJava.demangleInternalName
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("multiplatform")
-    id("org.jetbrains.compose")
+    id("org.jetbrains.compose") version "1.5.0"
 }
 
 group = "chat"
@@ -21,7 +22,7 @@ kotlin {
         withJava()
     }
     sourceSets {
-        val voyagerVersion = "1.0.0-rc05"
+        val voyagerVersion = "1.0.0-rc06"
         val kamelVersion = "0.7.1"
         val iconsVersion = "1.1.0"
         val ktorVersion = "2.3.0"
@@ -30,7 +31,7 @@ kotlin {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
-                //implementation("media.kamel:kamel-image:$kamelVersion")
+                implementation("media.kamel:kamel-image:$kamelVersion")
                 implementation("br.com.devsrsouza.compose.icons:font-awesome:$iconsVersion")
                 implementation("com.squareup.okio:okio:$okioVersion")
 
@@ -49,10 +50,6 @@ kotlin {
         }
         val jvmTest by getting
     }
-}
-
-dependencies {
-
 }
 
 tasks.withType<KotlinCompile> {
