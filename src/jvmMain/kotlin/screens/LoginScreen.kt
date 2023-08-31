@@ -1,7 +1,10 @@
 package screens
 
+import Instances
+import State
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.Button
@@ -18,8 +21,8 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import services.UserService
-import java.io.File
+import okio.Path.Companion.toPath
+import services.User
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -30,33 +33,52 @@ class LoginScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        val userService = UserService()
+        val userService = Instances.userService
 
-        var email: String by remember { mutableStateOf("") }
+        var name: String by remember { mutableStateOf("") }
 
-        Column(modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+        Column(
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally) {
-
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             TextField(
-                email,
+                name,
                 modifier = Modifier,
-                onValueChange = { email = it },
-                label = { Text("E-Mail Address") })
+                onValueChange = { name = it },
+                label = { Text("Enter name") })
 
-
-            Button(onClick = { navigator.replace(MainScreen()) }, enabled = !userService.isEmailTaken(email)) {
-                Text("Login")
+            Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+                Button(
+                    onClick = {
+                        navigator.replace(MainScreen())
+                        State.currentUser.value = User(name, Any())
+                    },
+                    enabled = !userService.isNameTaken(name)
+                ) {
+                    Text("Register")
+                }
+                Button(
+                    onClick = {
+                        navigator.replace(MainScreen())
+                        State.currentUser.value = User(name, Any())
+                    },
+                    enabled = !userService.isNameTaken(name)
+                ) {
+                    Text("Login")
+                }
             }
         }
     }
 
     fun getAppDirectory(email: String): Path {
         val appDataDirectory = getAppDataDirectory()
-        val file = File("$appDataDirectory/ChatApp-$email")
+        val path = "$appDataDirectory/ChatApp-$email".toPath()
 
-        return Files.createDirectory(file.toPath())
 
+        return Files.createDirectory(path.toNioPath())
+
+        // FileSystem.SYSTEM
         /*file.sink().buffer().use { sink ->
             for ((key, value) in System.getenv()) {
                 sink.writeUtf8(key)
@@ -75,6 +97,7 @@ class LoginScreen : Screen {
             os.contains("mac") -> "${System.getProperty("user.home")}/Library/Application Support"
             os.contains("nix") || os.contains("nux") || os.contains("sunos") ->
                 "${System.getProperty("user.home")}/.appdata"
+
             else -> throw IllegalStateException("Unsupported OS: $os")
         }
 

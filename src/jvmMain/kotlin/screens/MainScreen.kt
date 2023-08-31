@@ -1,5 +1,6 @@
 package screens
 
+import Instances
 import State
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -42,10 +43,8 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import components.withVerticalScroll
 import kotlinx.datetime.toJavaLocalDateTime
 import services.Message
-import services.MessageService
 import services.Sender
 import services.User
-import services.UserService
 import java.time.format.DateTimeFormatter
 
 class MainScreen : Screen {
@@ -63,9 +62,10 @@ class MainScreen : Screen {
         }
     }
 
+    @Preview
     @Composable
     fun userArea() {
-        val userService = UserService()
+        val userService = Instances.userService
 
         withVerticalScroll { scrollState ->
             Column(
@@ -114,7 +114,7 @@ class MainScreen : Screen {
 
     @Composable
     fun RowScope.contentArea() {
-        val messageService = MessageService()
+        val messageService = Instances.messageService
 
         withVerticalScroll { scrollState ->
             Column(
