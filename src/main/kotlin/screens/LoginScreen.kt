@@ -1,7 +1,6 @@
 package screens
 
 import Instances
-import State
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,12 +16,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import cafe.adriel.voyager.core.model.ScreenModel
+import cafe.adriel.voyager.core.model.coroutineScope
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import okio.Path.Companion.toPath
-import services.User
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -51,8 +57,10 @@ class LoginScreen : Screen {
             Row(horizontalArrangement = Arrangement.SpaceEvenly) {
                 Button(
                     onClick = {
-                        navigator.replace(MainScreen())
-                        State.currentUser.value = User(name, Any())
+                        (MainScope() + Job()).launch(Dispatchers.Main) {
+                            userService.register(name)
+                            navigator.replace(MainScreen())
+                        }
                     },
                     enabled = !userService.isNameTaken(name)
                 ) {
@@ -60,8 +68,10 @@ class LoginScreen : Screen {
                 }
                 Button(
                     onClick = {
-                        navigator.replace(MainScreen())
-                        State.currentUser.value = User(name, Any())
+                        (MainScope() + Job()).launch(Dispatchers.Main) {
+                            userService.login(name)
+                            navigator.replace(MainScreen())
+                        }
                     },
                     enabled = !userService.isNameTaken(name)
                 ) {

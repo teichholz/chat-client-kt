@@ -42,9 +42,10 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import components.withVerticalScroll
 import kotlinx.datetime.toJavaLocalDateTime
+import services.CurrentUser
 import services.Message
+import services.OnlineUser
 import services.Sender
-import services.User
 import java.time.format.DateTimeFormatter
 
 class MainScreen : Screen {
@@ -93,7 +94,7 @@ class MainScreen : Screen {
 
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
     @Composable
-    fun onlineUserListItem(user: User) {
+    fun onlineUserListItem(user: OnlineUser) {
         var inside by remember { mutableStateOf(false) }
         ListItem(icon = {
             Icon(
@@ -121,7 +122,7 @@ class MainScreen : Screen {
                 modifier = Modifier.background(Color.Red).weight(1f).fillMaxHeight().verticalScroll(scrollState)
             ) {
                 State.selectedUser.value?.let { user ->
-                    messageService.messagesFor(user).forEach { message ->
+                    messageService.messagesFor(OnlineUser("online user", Any())).forEach { message ->
                         chatMessage(message)
                     }
                 }
