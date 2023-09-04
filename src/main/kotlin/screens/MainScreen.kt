@@ -1,7 +1,7 @@
 package screens
 
+import Action
 import Instances
-import State
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -38,34 +38,40 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
+import components.SendMessage
 import components.withVerticalScroll
 import kotlinx.datetime.toJavaLocalDateTime
-import services.CurrentUser
+import kotlinx.datetime.toKotlinLocalDateTime
+import logger.LoggerDelegate
+import model.MainScreenModel
 import services.Message
 import services.OnlineUser
 import services.Sender
+import store
 import java.time.format.DateTimeFormatter
 
 class MainScreen : Screen {
+    val logger by LoggerDelegate()
+
     override val key = uniqueScreenKey
+
+    val model: MainScreenModel = MainScreenModel()
 
     @Composable
     override fun Content() {
-        val navigator = LocalNavigator.currentOrThrow
+        //val navigator = LocalNavigator.currentOrThrow
 
         Column(Modifier.fillMaxHeight().fillMaxWidth().background(Color.Gray)) {
             Row(Modifier.background(Color.Gray)) {
-                userArea()
-                contentArea()
+                UserArea()
+                ContentArea()
             }
         }
     }
 
     @Preview
     @Composable
-    fun userArea() {
+    fun UserArea() {
         val userService = Instances.userService
 
         withVerticalScroll { scrollState ->
@@ -73,9 +79,9 @@ class MainScreen : Screen {
                 modifier = Modifier.fillMaxWidth(.2f)
                     .verticalScroll(scrollState)
             ) {
-                userSearch()
+                UserSearch()
                 userService.getAllUsers().forEach {
-                    onlineUserListItem(it)
+                    OnlineUserListItem(it)
                     Divider(modifier = Modifier.fillMaxWidth(), thickness = 1.dp)
                 }
             }
@@ -84,17 +90,17 @@ class MainScreen : Screen {
 
     @Composable
     @Preview
-    fun userSearch() {
+    fun UserSearch() {
         TextField(
-            State.userSearch.value,
+            model.userSearch,
             modifier = Modifier.fillMaxWidth(),
-            onValueChange = { State.userSearch.value = it },
+            onValueChange = { model.setUserSearch(it) },
             label = { Text("Search User") })
     }
 
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
     @Composable
-    fun onlineUserListItem(user: OnlineUser) {
+    fun OnlineUserListItem(user: OnlineUser) {
         var inside by remember { mutableStateOf(false) }
         ListItem(icon = {
             Icon(
@@ -107,32 +113,51 @@ class MainScreen : Screen {
         }.onPointerEvent(PointerEventType.Exit) {
             inside = false
         }.onClick {
-            State.selectedUser.value = user
+            model.setSelectedUser(user)
         }) {
             Text(user.name, fontSize = if (inside) 25.sp else 20.sp)
         }
     }
 
     @Composable
-    fun RowScope.contentArea() {
+    fun RowScope.ContentArea() {
         val messageService = Instances.messageService
 
-        withVerticalScroll { scrollState ->
-            Column(
-                modifier = Modifier.background(Color.Red).weight(1f).fillMaxHeight().verticalScroll(scrollState)
-            ) {
-                State.selectedUser.value?.let { user ->
+        if (model.selectedUser == null) {
+            return
+        }
+
+        logger.info("Contentent Area compose")
+
+        Column(Modifier.background(Color.Red).weight(1f).fillMaxHeight()) {
+            withVerticalScroll { scrollState ->
+                Column(
+                    modifier = Modifier.verticalScroll(scrollState)
+                ) {
                     messageService.messagesFor(OnlineUser("online user", Any())).forEach { message ->
-                        chatMessage(message)
+                        ChatMessage(message)
                     }
                 }
+            }
+            val selectedUser = model.selectedUser!!
+            SendMessage(modifier = Modifier.weight(.2f)) {
+                store.send(
+                    Action.SendMessage(
+                        selectedUser,
+                        Message(
+                            content = it,
+                            date = java.time.LocalDateTime.now().toKotlinLocalDateTime(),
+                            sender = Sender.Self
+                        )
+                    )
+                )
             }
         }
     }
 
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
-    fun chatMessage(message: Message) {
+    fun ChatMessage(message: Message) {
         val arrangement = if (message.sender == Sender.Self) Arrangement.End else Arrangement.Start
         Row(modifier = Modifier.fillMaxWidth().padding(10.dp), horizontalArrangement = arrangement) {
             Card(shape = RoundedCornerShape(10.dp), elevation = 10.dp) {

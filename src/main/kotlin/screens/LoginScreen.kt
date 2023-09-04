@@ -16,8 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import cafe.adriel.voyager.core.model.ScreenModel
-import cafe.adriel.voyager.core.model.coroutineScope
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -25,7 +23,6 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import okio.Path.Companion.toPath
@@ -35,6 +32,8 @@ import java.util.*
 
 class LoginScreen : Screen {
     override val key = uniqueScreenKey
+
+    val scope = MainScope() + Job()
 
     @Composable
     override fun Content() {
@@ -57,7 +56,7 @@ class LoginScreen : Screen {
             Row(horizontalArrangement = Arrangement.SpaceEvenly) {
                 Button(
                     onClick = {
-                        (MainScope() + Job()).launch(Dispatchers.Main) {
+                        scope.launch(Dispatchers.Main) {
                             userService.register(name)
                             navigator.replace(MainScreen())
                         }
@@ -68,7 +67,7 @@ class LoginScreen : Screen {
                 }
                 Button(
                     onClick = {
-                        (MainScope() + Job()).launch(Dispatchers.Main) {
+                        scope.launch(Dispatchers.Main) {
                             userService.login(name)
                             navigator.replace(MainScreen())
                         }

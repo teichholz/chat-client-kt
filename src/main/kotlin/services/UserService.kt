@@ -1,7 +1,7 @@
 package services
 
+import Action
 import Instances
-import State
 import Users
 import chat.commons.routing.ReceiverPayloadLogin
 import chat.commons.routing.ReceiverPayloadLogout
@@ -14,6 +14,7 @@ import io.ktor.client.request.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.isActive
 import logger.LoggerDelegate
+import store
 
 class UserService {
     val logger by LoggerDelegate()
@@ -46,8 +47,7 @@ class UserService {
         }.body()
 
         val user = CurrentUser(id = body.id, name = name, icon = Any())
-        State.currentUser.value = user
-
+        store.send(Action.Login(user))
         logger.info("Logged in as $user")
     }
 
@@ -57,13 +57,12 @@ class UserService {
         }.body()
 
         val user = CurrentUser(id = body.id, name = name, icon = Any())
-        State.currentUser.value = user
-
+        store.send(Action.Login(user))
         logger.info("Registered as $user")
     }
 
     suspend fun logout() {
-        State.currentUser.value?.let {
+        store.currentUser?.let {
             Instances.httpClient.post(Users.Logout()) {
                 setBody(ReceiverPayloadLogout(it.id, it.name)) // TODO
             }
