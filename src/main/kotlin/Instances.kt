@@ -7,11 +7,13 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import services.MessageService
+import services.MessageServiceImpl
 import services.UserService
+import services.UserServiceImpl
 
 object Instances {
-    val userService = UserService()
-    val messageService = MessageService()
+    val userService : UserService = UserServiceImpl()
+    val messageService : MessageService = MessageServiceImpl()
 
     val httpClient = HttpClient(CIO) {
         install(WebSockets)

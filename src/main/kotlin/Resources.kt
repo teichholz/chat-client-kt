@@ -6,6 +6,8 @@ class Users {
     class Login(val parent: Users = Users()) {}
     @Resource("/register")
     class Register(val parent: Users = Users()) {}
+    @Resource("/registered")
+    class Registered(val parent: Users = Users()) {}
     @Resource("/logout")
     class Logout(val parent: Users = Users()) {}
 }

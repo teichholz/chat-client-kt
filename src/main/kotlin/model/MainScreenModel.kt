@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import cafe.adriel.voyager.core.model.StateScreenModel
 import kotlinx.coroutines.flow.update
-import services.OnlineUser
 
 data class State(
     val userSearch: String = "",

@@ -8,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,10 +43,11 @@ import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
 import logger.LoggerDelegate
 import model.MainScreenModel
-import services.Message
-import services.OnlineUser
-import services.Sender
+import model.Message
+import model.OnlineUser
+import model.Sender
 import store
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class MainScreen : Screen {
@@ -120,19 +120,17 @@ class MainScreen : Screen {
     }
 
     @Composable
-    fun RowScope.ContentArea() {
+    fun ContentArea() {
         val messageService = Instances.messageService
 
         if (model.selectedUser == null) {
             return
         }
 
-        logger.info("Contentent Area compose")
-
-        Column(Modifier.background(Color.Red).weight(1f).fillMaxHeight()) {
-            withVerticalScroll { scrollState ->
+        Column(Modifier.background(Color.Red).fillMaxHeight()) {
+            withVerticalScroll(modifier = Modifier.fillMaxHeight(.85f)) { scrollState ->
                 Column(
-                    modifier = Modifier.verticalScroll(scrollState)
+                    modifier = Modifier.weight(1f).verticalScroll(scrollState)
                 ) {
                     messageService.messagesFor(OnlineUser("online user", Any())).forEach { message ->
                         ChatMessage(message)
@@ -140,13 +138,13 @@ class MainScreen : Screen {
                 }
             }
             val selectedUser = model.selectedUser!!
-            SendMessage(modifier = Modifier.weight(.2f)) {
+            SendMessage(modifier = Modifier.fillMaxHeight(1f)) {
                 store.send(
                     Action.SendMessage(
                         selectedUser,
                         Message(
                             content = it,
-                            date = java.time.LocalDateTime.now().toKotlinLocalDateTime(),
+                            date = LocalDateTime.now().toKotlinLocalDateTime(),
                             sender = Sender.Self
                         )
                     )

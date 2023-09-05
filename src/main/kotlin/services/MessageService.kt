@@ -1,13 +1,21 @@
 package services
 
-import kotlinx.datetime.toKotlinLocalDateTime
+import io.ktor.client.plugins.websocket.*
+import model.Message
+import model.OnlineUser
 
-class MessageService {
-    fun messagesFor(user: OnlineUser): List<Message> {
-        return (0..15).map {
-            Message("Message $it: ${user.name}",
-                java.time.LocalDateTime.now().plusHours(it.toLong()).toKotlinLocalDateTime(),
-                if (it % 2 == 0) Sender.Self else Sender.Other(OnlineUser("Other User", Any())))
-        }
+interface MessageService {
+    fun messagesFor(user: OnlineUser): List<Message>
+
+    suspend fun sendMessage(to: OnlineUser, message: Message)
+
+    context(DefaultClientWebSocketSession)
+    fun sendJob() {
+
+    }
+
+    context(DefaultClientWebSocketSession)
+    fun receiveJob() {
+
     }
 }

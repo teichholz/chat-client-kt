@@ -5,9 +5,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import logger.getLogger
-import services.CurrentUser
-import services.Message
-import services.OnlineUser
+import model.CurrentUser
+import model.Message
+import model.OnlineUser
+import model.Sender
 
 val logger = getLogger("Store")
 
@@ -38,9 +39,25 @@ fun CoroutineScope.createStore(): Store {
 fun reducer(state: State, action: Action): State =
     when (action) {
         is Action.SendMessage -> {
+            if (action.message.sender != Sender.Self) {
+                throw IllegalArgumentException("Cannot send message from other user")
+            }
+
             val newMessages = (state.messages[action.to] ?: listOf()) + action.message
             state.copy(
                 messages = state.messages + (action.to to newMessages)
+            )
+        }
+
+        is Action.ReceiveMessage -> {
+            if (action.message.sender == Sender.Self) {
+                throw IllegalArgumentException("Cannot send message from self")
+            }
+
+            val newMessages = (state.messages[action.from] ?: listOf()) + action.message
+            state.copy(
+                received = state.received + 1,
+                messages = state.messages + (action.from to newMessages)
             )
         }
 
@@ -49,6 +66,7 @@ fun reducer(state: State, action: Action): State =
                 currentUser = action.user
             )
         }
+
     }
 
 interface Store {
@@ -58,14 +76,18 @@ interface Store {
 
     val currentUser get() = state.currentUser
     val messages get() = state.messages
+    val received get() = state.received
 }
 
 data class State(
     val currentUser: CurrentUser? = null,
+
+    val received: Long = 0,
     val messages: Map<OnlineUser, List<Message>> = mapOf()
 )
 
 sealed interface Action {
     data class Login(val user: CurrentUser) : Action
     data class SendMessage(val to: OnlineUser, val message: Message): Action
+    data class ReceiveMessage(val from: OnlineUser, val message: Message): Action
 }

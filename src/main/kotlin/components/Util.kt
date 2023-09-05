@@ -4,6 +4,8 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -23,15 +25,16 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun withVerticalScroll(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.fillMaxHeight(1f),
     content: @Composable (scrollState: ScrollState) -> Unit
 ) {
     val stateVerticalContent = rememberScrollState(0)
-    content(stateVerticalContent)
-    VerticalScrollbar(
-        adapter = rememberScrollbarAdapter(stateVerticalContent),
-        modifier = modifier
-    )
+    Row(modifier = modifier) {
+        content(stateVerticalContent)
+        VerticalScrollbar(
+            adapter = rememberScrollbarAdapter(stateVerticalContent)
+        )
+    }
 }
 
 @Composable
