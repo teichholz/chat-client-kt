@@ -1,8 +1,10 @@
 package services
 
 import Action
+import arrow.atomic.AtomicInt
 import chat.commons.protocol.MessagePayloadSocket
 import chat.commons.protocol.Protocol
+import chat.commons.protocol.ack
 import chat.commons.protocol.isMessage
 import chat.commons.protocol.message
 import chat.commons.routing.ReceiverPayload
@@ -30,35 +32,35 @@ class MessageServiceImpl : MessageService {
     }
 
     override suspend fun sendMessage(to: OnlineUser, message: Message) {
-        val protocolMessage = Protocol.MESSAGE().apply {
+        val protocolMessage = message {
             payload = MessagePayloadSocket(
-                from = ReceiverPayload(store.currentUser!!.name),
+                from = ReceiverPayload(store.currentUser.name),
                 to = ReceiverPayload(to.name),
                 message = message.content,
                 sent = message.date
             )
-        }
+        } as Protocol.MESSAGE
         messageQueue.send(protocolMessage)
         store.send(Action.SendMessage(to, message))
     }
 
     context(DefaultClientWebSocketSession)
     override fun sendJob() {
+        val sent = AtomicInt(0)
         launch(Dispatchers.IO) {
             while (isActive) {
                 val message = messageQueue.receive()
                 sendSerialized(message)
+                sent.incrementAndGet()
             }
         }
     }
 
     context(DefaultClientWebSocketSession)
     override fun receiveJob() {
-        val user = store.currentUser!!
-
         launch {
             while (isActive) {
-                val protocol = receiveDeserialized<Protocol<*>>()
+                val protocol = receiveDeserialized<Protocol>()
 
                 if (!protocol.isMessage()) {
                     throw IllegalStateException("Received non-message protocol")
@@ -70,7 +72,7 @@ class MessageServiceImpl : MessageService {
                     val content = it.payload.message
                     val sent = it.payload.sent
 
-                    if (from == user.name) {
+                    if (from == store.currentUser.name) {
                         throw IllegalStateException("Received message from self")
                         //store.send(Action.SendMessage(OnlineUser(to, Any()), Message(content = content, date = sent, sender = Sender.Self)))
                     } else {
@@ -83,7 +85,7 @@ class MessageServiceImpl : MessageService {
                     }
                 }
 
-                sendSerialized(Protocol.ACK().apply {
+                sendSerialized(ack {
                     payload = store.received
                 })
             }

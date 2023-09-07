@@ -11,14 +11,15 @@ import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import screens.LoginScreen
 import screens.MainScreen
 
-val store = CoroutineScope(SupervisorJob()).createStore()
+lateinit var store : Store
 
 fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
         MaterialTheme {
-            Navigator(MainScreen()) {
+            Navigator(LoginScreen()) {
                 MaterialTheme {
                     Scaffold(
                         topBar = { TopAppBar(Modifier.fillMaxHeight(.1f).fillMaxWidth()) { Text("Top App Bar") } }

@@ -1,6 +1,5 @@
 package screens
 
-import Action
 import Instances
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -23,9 +22,11 @@ import androidx.compose.material.ListItem
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -39,6 +40,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import components.SendMessage
 import components.withVerticalScroll
+import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
 import logger.LoggerDelegate
@@ -46,13 +48,11 @@ import model.MainScreenModel
 import model.Message
 import model.OnlineUser
 import model.Sender
-import store
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class MainScreen : Screen {
     val logger by LoggerDelegate()
-
     override val key = uniqueScreenKey
 
     val model: MainScreenModel = MainScreenModel()
@@ -73,18 +73,24 @@ class MainScreen : Screen {
     @Composable
     fun UserArea() {
         val userService = Instances.userService
+        val scope = rememberCoroutineScope()
+
+        var users: List<OnlineUser> by remember { mutableStateOf(listOf()) }
 
         withVerticalScroll { scrollState ->
             Column(
                 modifier = Modifier.fillMaxWidth(.2f)
                     .verticalScroll(scrollState)
             ) {
-                UserSearch()
-                userService.getAllUsers().forEach {
+                users.forEach {
                     OnlineUserListItem(it)
                     Divider(modifier = Modifier.fillMaxWidth(), thickness = 1.dp)
                 }
             }
+        }
+
+        LaunchedEffect(Unit) {
+            users = userService.getAllUsers()
         }
     }
 
@@ -122,6 +128,7 @@ class MainScreen : Screen {
     @Composable
     fun ContentArea() {
         val messageService = Instances.messageService
+        val coroutineScope = rememberCoroutineScope()
 
         if (model.selectedUser == null) {
             return
@@ -137,18 +144,15 @@ class MainScreen : Screen {
                     }
                 }
             }
-            val selectedUser = model.selectedUser!!
             SendMessage(modifier = Modifier.fillMaxHeight(1f)) {
-                store.send(
-                    Action.SendMessage(
-                        selectedUser,
-                        Message(
-                            content = it,
-                            date = LocalDateTime.now().toKotlinLocalDateTime(),
-                            sender = Sender.Self
-                        )
-                    )
+                val message = Message(
+                    content = it,
+                    date = LocalDateTime.now().toKotlinLocalDateTime(),
+                    sender = Sender.Self
                 )
+                coroutineScope.launch {
+                    messageService.sendMessage(model.selectedUser!!, message)
+                }
             }
         }
     }

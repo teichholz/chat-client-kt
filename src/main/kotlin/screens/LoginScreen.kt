@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,14 +34,14 @@ import java.util.*
 class LoginScreen : Screen {
     override val key = uniqueScreenKey
 
-    val scope = MainScope() + Job()
-
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val userService = Instances.userService
 
         var name: String by remember { mutableStateOf("") }
+
+        val scope = rememberCoroutineScope()
 
         Column(
             modifier = Modifier.fillMaxWidth().fillMaxHeight(),
@@ -67,7 +68,7 @@ class LoginScreen : Screen {
                 }
                 Button(
                     onClick = {
-                        scope.launch(Dispatchers.Main) {
+                        scope.launch {
                             userService.login(name)
                             navigator.replace(MainScreen())
                         }

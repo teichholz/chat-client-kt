@@ -12,8 +12,8 @@ import model.Sender
 
 val logger = getLogger("Store")
 
-fun CoroutineScope.createStore(): Store {
-    val mutableStateFlow = MutableStateFlow(State())
+fun CoroutineScope.createStore(user: CurrentUser): Store {
+    val mutableStateFlow = MutableStateFlow(State(user))
     val channel: Channel<Action> = Channel(Channel.UNLIMITED)
 
     return object : Store {
@@ -51,7 +51,7 @@ fun reducer(state: State, action: Action): State =
 
         is Action.ReceiveMessage -> {
             if (action.message.sender == Sender.Self) {
-                throw IllegalArgumentException("Cannot send message from self")
+                throw IllegalArgumentException("Cannot receive message from self")
             }
 
             val newMessages = (state.messages[action.from] ?: listOf()) + action.message
@@ -60,13 +60,6 @@ fun reducer(state: State, action: Action): State =
                 messages = state.messages + (action.from to newMessages)
             )
         }
-
-        is Action.Login -> {
-            state.copy(
-                currentUser = action.user
-            )
-        }
-
     }
 
 interface Store {
@@ -80,14 +73,13 @@ interface Store {
 }
 
 data class State(
-    val currentUser: CurrentUser? = null,
+    var currentUser: CurrentUser,
 
     val received: Long = 0,
     val messages: Map<OnlineUser, List<Message>> = mapOf()
 )
 
 sealed interface Action {
-    data class Login(val user: CurrentUser) : Action
     data class SendMessage(val to: OnlineUser, val message: Message): Action
     data class ReceiveMessage(val from: OnlineUser, val message: Message): Action
 }

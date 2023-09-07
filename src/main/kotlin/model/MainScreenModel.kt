@@ -10,7 +10,7 @@ data class State(
     val selectedUser: OnlineUser? = null
 )
 
-class MainScreenModel : StateScreenModel<State>(State()) {
+sealed class MainScreenModel : StateScreenModel<State>(State()) {
     fun setUserSearch(userSearch: String) {
         mutableState.update {
             it.copy(userSearch = userSearch)

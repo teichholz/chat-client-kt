@@ -5,7 +5,9 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.Json
 import services.MessageService
 import services.MessageServiceImpl
 import services.UserService
@@ -16,7 +18,13 @@ object Instances {
     val messageService : MessageService = MessageServiceImpl()
 
     val httpClient = HttpClient(CIO) {
-        install(WebSockets)
+        install(WebSockets) {
+            contentConverter = KotlinxWebsocketSerializationConverter(Json {
+                prettyPrint = true
+                isLenient = true
+                ignoreUnknownKeys = true
+            })
+        }
         install(Resources)
         install(ContentNegotiation) {
             json()
