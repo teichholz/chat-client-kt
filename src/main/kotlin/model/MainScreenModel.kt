@@ -10,14 +10,14 @@ data class State(
     val selectedUser: OnlineUser? = null
 )
 
-sealed class MainScreenModel : StateScreenModel<State>(State()) {
+class MainScreenModel : StateScreenModel<State>(State()) {
     fun setUserSearch(userSearch: String) {
         mutableState.update {
             it.copy(userSearch = userSearch)
         }
     }
 
-    val userSearch @Composable get () = mutableState.collectAsState().value.userSearch
+    val userSearch @Composable get() = mutableState.collectAsState().value.userSearch
 
     fun setSelectedUser(selectedUser: OnlineUser?) {
         mutableState.update {
@@ -25,5 +25,5 @@ sealed class MainScreenModel : StateScreenModel<State>(State()) {
         }
     }
 
-    val selectedUser @Composable get () = mutableState.collectAsState().value.selectedUser
+    val selectedUser @Composable get() = mutableState.collectAsState().value.selectedUser
 }

@@ -10,7 +10,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
@@ -21,6 +24,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import model.Sender
 
 
 @Composable
@@ -38,13 +42,36 @@ fun withVerticalScroll(
 }
 
 @Composable
+fun ChatMessage(sender: Sender, content: @Composable () -> Unit) {
+    val bottomStart = if (sender == Sender.Self) 0.dp else 10.dp
+    val bottomEnd = if (sender == Sender.Other) 0.dp else 10.dp
+    val card = @Composable {
+        Card(
+            shape = RoundedCornerShape(10.dp, 10.dp, bottomStart, bottomEnd),
+            elevation = 0.dp
+        ) { content() }
+    }
+    val triangle = @Composable { Triangle(risingToTheRight = sender == Sender.Other, background = Color.White) }
+
+    Row(verticalAlignment = Bottom) {
+        if (sender == Sender.Self) {
+            card()
+            triangle()
+        } else {
+            triangle()
+            card()
+        }
+    }
+}
+
+@Composable
 fun Triangle(risingToTheRight: Boolean, background: Color) {
     Box(
         Modifier
-            .padding(bottom = 10.dp, start = 0.dp)
+            .padding(bottom = 0.dp, start = 0.dp)
             .clip(TriangleEdgeShape(risingToTheRight))
             .background(background)
-            .size(6.dp)
+            .size(7.dp)
     )
 }
 
@@ -54,7 +81,8 @@ class TriangleEdgeShape(val risingToTheRight: Boolean) : Shape {
         layoutDirection: LayoutDirection,
         density: Density
     ): Outline {
-        val trianglePath = if(risingToTheRight) {
+        // (0,0) is the top left corner of the layout, just like in video game engines
+        val trianglePath = if (risingToTheRight) {
             Path().apply {
                 moveTo(x = 0f, y = size.height)
                 lineTo(x = size.width, y = 0f)

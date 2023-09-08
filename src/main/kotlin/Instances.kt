@@ -1,6 +1,8 @@
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.auth.*
+import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.plugins.websocket.*
@@ -14,10 +16,10 @@ import services.UserService
 import services.UserServiceImpl
 
 object Instances {
-    val userService : UserService = UserServiceImpl()
-    val messageService : MessageService = MessageServiceImpl()
+    val userService: UserService = UserServiceImpl()
+    val messageService: MessageService = MessageServiceImpl()
 
-    val httpClient = HttpClient(CIO) {
+    var httpClient: HttpClient = HttpClient(CIO) {
         install(WebSockets) {
             contentConverter = KotlinxWebsocketSerializationConverter(Json {
                 prettyPrint = true
@@ -37,6 +39,19 @@ object Instances {
             port = 8080
             url {
                 protocol = URLProtocol.HTTP
+            }
+        }
+    }
+}
+
+fun HttpClient.installAuth(username: String, password: String): HttpClient {
+    return config {
+        install(Auth) {
+            basic {
+                credentials {
+                    BasicAuthCredentials(username, password)
+                }
+                realm = "Access to the '/' path"
             }
         }
     }

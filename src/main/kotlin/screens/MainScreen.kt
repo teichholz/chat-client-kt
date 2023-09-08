@@ -12,9 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.onClick
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
@@ -48,6 +46,7 @@ import model.MainScreenModel
 import model.Message
 import model.OnlineUser
 import model.Sender
+import store
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -67,13 +66,16 @@ class MainScreen : Screen {
                 ContentArea()
             }
         }
+
+        LaunchedEffect(Unit) {
+            Instances.messageService.connectWebsockets(store.currentUser)
+        }
     }
 
     @Preview
     @Composable
     fun UserArea() {
         val userService = Instances.userService
-        val scope = rememberCoroutineScope()
 
         var users: List<OnlineUser> by remember { mutableStateOf(listOf()) }
 
@@ -82,6 +84,7 @@ class MainScreen : Screen {
                 modifier = Modifier.fillMaxWidth(.2f)
                     .verticalScroll(scrollState)
             ) {
+                UserSearch()
                 users.forEach {
                     OnlineUserListItem(it)
                     Divider(modifier = Modifier.fillMaxWidth(), thickness = 1.dp)
@@ -144,6 +147,7 @@ class MainScreen : Screen {
                     }
                 }
             }
+            val selectedUser = model.selectedUser!!
             SendMessage(modifier = Modifier.fillMaxHeight(1f)) {
                 val message = Message(
                     content = it,
@@ -151,7 +155,7 @@ class MainScreen : Screen {
                     sender = Sender.Self
                 )
                 coroutineScope.launch {
-                    messageService.sendMessage(model.selectedUser!!, message)
+                    messageService.sendMessage(selectedUser, message)
                 }
             }
         }
@@ -162,10 +166,9 @@ class MainScreen : Screen {
     fun ChatMessage(message: Message) {
         val arrangement = if (message.sender == Sender.Self) Arrangement.End else Arrangement.Start
         Row(modifier = Modifier.fillMaxWidth().padding(10.dp), horizontalArrangement = arrangement) {
-            Card(shape = RoundedCornerShape(10.dp), elevation = 10.dp) {
+            components.ChatMessage(message.sender) {
                 ListItem(
-                    modifier = Modifier.fillMaxWidth(.55f)
-                        .background(Color.Cyan),
+                    modifier = Modifier.fillMaxWidth(.55f),
                     trailing = {
                         Text(
                             message.date.toJavaLocalDateTime().toLocalTime()

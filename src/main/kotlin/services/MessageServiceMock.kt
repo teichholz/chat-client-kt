@@ -11,9 +11,11 @@ import java.time.LocalDateTime
 class MessageServiceMock : MessageService {
     override fun messagesFor(user: OnlineUser): List<Message> {
         return (0..15).map {
-            Message("Message $it: ${user.name}",
+            Message(
+                "Message $it: ${user.name}",
                 LocalDateTime.now().plusHours(it.toLong()).toKotlinLocalDateTime(),
-                if (it % 2 == 0) Sender.Self else Sender.Other)
+                if (it % 2 == 0) Sender.Self else Sender.Other
+            )
         }
     }
 

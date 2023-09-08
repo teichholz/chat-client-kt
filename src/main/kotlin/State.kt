@@ -80,6 +80,6 @@ data class State(
 )
 
 sealed interface Action {
-    data class SendMessage(val to: OnlineUser, val message: Message): Action
-    data class ReceiveMessage(val from: OnlineUser, val message: Message): Action
+    data class SendMessage(val to: OnlineUser, val message: Message) : Action
+    data class ReceiveMessage(val from: OnlineUser, val message: Message) : Action
 }

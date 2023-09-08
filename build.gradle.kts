@@ -20,47 +20,48 @@ repositories {
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 }
 
-        val voyagerVersion = "1.0.0-rc06"
-        val kamelVersion = "0.7.1"
-        val iconsVersion = "1.1.0"
-        val ktorVersion = "2.3.0"
-        val okioVersion = "3.5.0"
-        val logbackVersion = "1.4.7"
-        val slf4jVersion = "2.0.7"
-            dependencies {
-                implementation(compose.desktop.macos_arm64)
-                implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
-                implementation("media.kamel:kamel-image:$kamelVersion")
-                implementation("br.com.devsrsouza.compose.icons:font-awesome:$iconsVersion")
-                implementation("com.squareup.okio:okio:$okioVersion")
+val voyagerVersion = "1.0.0-rc06"
+val kamelVersion = "0.7.1"
+val iconsVersion = "1.1.0"
+val ktorVersion = "2.3.0"
+val okioVersion = "3.5.0"
+val logbackVersion = "1.4.7"
+val slf4jVersion = "2.0.7"
+dependencies {
+    implementation(compose.desktop.macos_arm64)
+    implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
+    implementation("media.kamel:kamel-image:$kamelVersion")
+    implementation("br.com.devsrsouza.compose.icons:font-awesome:$iconsVersion")
+    implementation("com.squareup.okio:okio:$okioVersion")
 
-                implementation("io.ktor:ktor-client-websockets:$ktorVersion")
-                implementation("io.ktor:ktor-client-cio:$ktorVersion")
-                implementation("io.ktor:ktor-client-resources:$ktorVersion")
-                implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    implementation("io.ktor:ktor-client-websockets:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-resources:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    implementation("io.ktor:ktor-client-auth:$ktorVersion")
 
-                // serialization
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+    // serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
-                // coroutines
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing")
-                // arrow
-                implementation("io.arrow-kt:arrow-core:1.2.0")
-                implementation("io.arrow-kt:arrow-fx-coroutines:1.2.0")
-                implementation("io.arrow-kt:arrow-fx-stm:1.2.0")
-                implementation("io.arrow-kt:arrow-resilience:1.2.0")
+    // coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing")
+    // arrow
+    implementation("io.arrow-kt:arrow-core:1.2.0")
+    implementation("io.arrow-kt:arrow-fx-coroutines:1.2.0")
+    implementation("io.arrow-kt:arrow-fx-stm:1.2.0")
+    implementation("io.arrow-kt:arrow-resilience:1.2.0")
 
-                // logging
-                implementation("org.slf4j:slf4j-api:$slf4jVersion")
-                implementation("ch.qos.logback:logback-classic:$logbackVersion")
-                implementation("ch.qos.logback:logback-core:$logbackVersion")
+    // logging
+    implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+    implementation("ch.qos.logback:logback-core:$logbackVersion")
 
-                // commons
-                implementation("chat.commons:chat-commons:1.2")
-            }
+    // commons
+    implementation("chat.commons:chat-commons:1.2")
+}
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "11"

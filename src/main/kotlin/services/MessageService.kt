@@ -1,6 +1,8 @@
 package services
 
 import io.ktor.client.plugins.websocket.*
+import kotlinx.coroutines.CoroutineScope
+import model.CurrentUser
 import model.Message
 import model.OnlineUser
 
@@ -10,12 +12,14 @@ interface MessageService {
     suspend fun sendMessage(to: OnlineUser, message: Message)
 
     context(DefaultClientWebSocketSession)
-    fun sendJob() {
-
+    suspend fun sendJob() {
     }
 
     context(DefaultClientWebSocketSession)
-    fun receiveJob() {
+    suspend fun receiveJob() {
+    }
 
+    context(CoroutineScope)
+    fun connectWebsockets(user: CurrentUser) {
     }
 }
