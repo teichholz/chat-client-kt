@@ -11,15 +11,14 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import services.MessageService
-import services.MessageServiceImpl
+import services.MessageServiceMock
 import services.UserService
-import services.UserServiceImpl
+import services.UserServiceMock
 
-object Instances {
-    val userService: UserService = UserServiceImpl()
-    val messageService: MessageService = MessageServiceImpl()
-
-    var httpClient: HttpClient = HttpClient(CIO) {
+val userServiceFactory = { UserServiceMock() }
+val messageServiceFactory = { MessageServiceMock() }
+val httpClientFactory = {
+    HttpClient(CIO) {
         install(WebSockets) {
             contentConverter = KotlinxWebsocketSerializationConverter(Json {
                 prettyPrint = true
@@ -42,6 +41,19 @@ object Instances {
             }
         }
     }
+}
+
+object Instances {
+    var userService: UserService = userServiceFactory()
+    var messageService: MessageService = messageServiceFactory()
+
+    var httpClient: HttpClient = httpClientFactory()
+}
+
+fun reset() {
+    Instances.userService = userServiceFactory()
+    Instances.messageService = messageServiceFactory()
+    Instances.httpClient = httpClientFactory()
 }
 
 fun HttpClient.installAuth(username: String, password: String): HttpClient {

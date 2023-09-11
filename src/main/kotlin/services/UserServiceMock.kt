@@ -10,7 +10,7 @@ import store
 class UserServiceMock : UserService {
     override suspend fun getAllUsers(): List<OnlineUser> {
         return (0..40).map {
-            OnlineUser(name = "User $it", icon = Any())
+            OnlineUser(name = "User $it", icon = "")
         }
     }
 
@@ -19,12 +19,12 @@ class UserServiceMock : UserService {
     }
 
     override suspend fun login(name: String) {
-        val user = CurrentUser(id = 0, name = name, icon = Any())
+        val user = CurrentUser(id = 0, name = name, icon = "")
         store = CoroutineScope(SupervisorJob()).createStore(user)
     }
 
     override suspend fun register(name: String) {
-        val user = CurrentUser(id = 0, name = name, icon = Any())
+        val user = CurrentUser(id = 0, name = name, icon = "")
         store = CoroutineScope(SupervisorJob()).createStore(user)
     }
 }

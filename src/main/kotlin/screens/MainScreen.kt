@@ -1,5 +1,6 @@
 package screens
 
+import Action
 import Instances
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -21,6 +22,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,8 +38,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import components.SendMessage
 import components.withVerticalScroll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
@@ -69,6 +74,17 @@ class MainScreen : Screen {
 
         LaunchedEffect(Unit) {
             Instances.messageService.connectWebsockets(store.currentUser)
+            while (true) {
+                Instances.userService.getAllUsers().forEach {
+                    store.send(
+                        Action.SendMessage(
+                            it,
+                            Message("test", LocalDateTime.now().toKotlinLocalDateTime(), Sender.Self)
+                        )
+                    )
+                }
+                delay(1000)
+            }
         }
     }
 
@@ -130,24 +146,27 @@ class MainScreen : Screen {
 
     @Composable
     fun ContentArea() {
-        val messageService = Instances.messageService
-        val coroutineScope = rememberCoroutineScope()
-
         if (model.selectedUser == null) {
             return
         }
+
+        val messageService = Instances.messageService
+        val coroutineScope = rememberCoroutineScope()
+
+        val state by store.stateFlow.collectAsState()
+        val selectedUser = model.selectedUser!!
 
         Column(Modifier.background(Color.Red).fillMaxHeight()) {
             withVerticalScroll(modifier = Modifier.fillMaxHeight(.85f)) { scrollState ->
                 Column(
                     modifier = Modifier.weight(1f).verticalScroll(scrollState)
                 ) {
-                    messageService.messagesFor(OnlineUser("online user", Any())).forEach { message ->
+                    state.messages[selectedUser]?.forEach { message ->
+                        logger.info("message: $message")
                         ChatMessage(message)
                     }
                 }
             }
-            val selectedUser = model.selectedUser!!
             SendMessage(modifier = Modifier.fillMaxHeight(1f)) {
                 val message = Message(
                     content = it,

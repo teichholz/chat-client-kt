@@ -90,6 +90,7 @@ class MessageServiceImpl : MessageService {
         while (isActive) {
             val message = messageQueue.receive()
             sendSerialized(message)
+            receiveDeserialized<Protocol.ACK>()
             sent.incrementAndGet()
         }
     }

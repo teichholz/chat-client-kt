@@ -12,6 +12,15 @@ import model.Sender
 
 val logger = getLogger("Store")
 
+object EmptyStore : Store {
+    override fun send(action: Action) {
+        throw NotImplementedError()
+    }
+
+    override val stateFlow: StateFlow<State>
+        get() = throw NotImplementedError()
+}
+
 fun CoroutineScope.createStore(user: CurrentUser): Store {
     val mutableStateFlow = MutableStateFlow(State(user))
     val channel: Channel<Action> = Channel(Channel.UNLIMITED)
@@ -21,7 +30,6 @@ fun CoroutineScope.createStore(user: CurrentUser): Store {
             launch {
                 channel.consumeAsFlow().collect { action ->
                     mutableStateFlow.value = reducer(mutableStateFlow.value, action)
-                    logger.info("Performed State Action: $action")
                 }
             }
         }
