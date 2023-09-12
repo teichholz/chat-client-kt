@@ -23,6 +23,7 @@ import model.Message
 import model.OnlineUser
 import model.Sender
 import store
+import webSocketAuth
 import java.time.LocalDateTime
 
 class MessageServiceImpl : MessageService {
@@ -57,7 +58,7 @@ class MessageServiceImpl : MessageService {
     override suspend fun connectWebsockets(user: CurrentUser) {
         fun go(endpoint: String, block: suspend DefaultClientWebSocketSession.() -> Unit) {
             launch {
-                Instances.httpClient.webSocket("ws://127.0.0.1:8080/$endpoint") {
+                Instances.httpClient.webSocketAuth(endpoint) {
                     logger.info("Connected to server via $endpoint websocket")
 
                     val auth = chat.commons.protocol.auth {
@@ -65,7 +66,7 @@ class MessageServiceImpl : MessageService {
                     }
 
                     sendSerialized(auth)
-                    receiveDeserialized<Protocol.ACK>()
+                    receiveDeserialized<Protocol>()
 
                     block()
 
@@ -89,7 +90,7 @@ class MessageServiceImpl : MessageService {
         while (isActive) {
             val message = messageQueue.receive()
             sendSerialized(message)
-            receiveDeserialized<Protocol.ACK>()
+            receiveDeserialized<Protocol>()
             sent.incrementAndGet()
         }
     }
@@ -104,6 +105,8 @@ class MessageServiceImpl : MessageService {
             }
 
             protocol.message {
+                logger.info("Received message $it")
+
                 val from = it.payload.from.name
                 val to = it.payload.to.name
                 val content = it.payload.message
