@@ -1,11 +1,14 @@
 package screens
 
 import Instances
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
@@ -17,6 +20,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -45,34 +49,40 @@ class LoginScreen : Screen {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TextField(
-                name,
-                modifier = Modifier,
-                onValueChange = { name = it },
-                label = { Text("Enter name") })
+            Column(
+                modifier = Modifier.width(IntrinsicSize.Max),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                TextField(
+                    name,
+                    modifier = Modifier,
+                    onValueChange = { name = it },
+                    label = { Text("Enter name") })
 
-            Row(horizontalArrangement = Arrangement.SpaceEvenly) {
-                Button(
-                    onClick = {
-                        scope.launch(Dispatchers.Main) {
-                            userService.register(name)
-                            navigator.replace(MainScreen())
-                        }
-                    },
-                    enabled = !userService.isNameTaken(name)
-                ) {
-                    Text("Register")
-                }
-                Button(
-                    onClick = {
-                        scope.launch {
-                            userService.login(name)
-                            navigator.replace(MainScreen())
-                        }
-                    },
-                    enabled = !userService.isNameTaken(name)
-                ) {
-                    Text("Login")
+                Row(modifier = Modifier.fillMaxWidth(1f), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Button(
+                        onClick = {
+                            scope.launch(Dispatchers.Main) {
+                                userService.register(name)
+                                navigator.replace(MainScreen())
+                            }
+                        },
+                        enabled = !userService.isNameTaken(name)
+                    ) {
+                        Text("Register")
+                    }
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                userService.login(name)
+                                navigator.replace(MainScreen())
+                            }
+                        },
+                        enabled = !userService.isNameTaken(name)
+                    ) {
+                        Text("Login")
+                    }
                 }
             }
         }

@@ -1,17 +1,23 @@
 package screens
 
-import Action
 import Instances
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.onClick
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
@@ -38,11 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
 import components.SendMessage
 import components.withVerticalScroll
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
@@ -63,8 +66,6 @@ class MainScreen : Screen {
 
     @Composable
     override fun Content() {
-        //val navigator = LocalNavigator.currentOrThrow
-
         Column(Modifier.fillMaxHeight().fillMaxWidth().background(Color.Gray)) {
             Row(Modifier.background(Color.Gray)) {
                 UserArea()
@@ -74,17 +75,6 @@ class MainScreen : Screen {
 
         LaunchedEffect(Unit) {
             Instances.messageService.connectWebsockets(store.currentUser)
-            while (true) {
-                Instances.userService.getAllUsers().forEach {
-                    store.send(
-                        Action.SendMessage(
-                            it,
-                            Message("test", LocalDateTime.now().toKotlinLocalDateTime(), Sender.Self)
-                        )
-                    )
-                }
-                delay(1000)
-            }
         }
     }
 
@@ -156,18 +146,15 @@ class MainScreen : Screen {
         val state by store.stateFlow.collectAsState()
         val selectedUser = model.selectedUser!!
 
-        Column(Modifier.background(Color.Red).fillMaxHeight()) {
-            withVerticalScroll(modifier = Modifier.fillMaxHeight(.85f)) { scrollState ->
-                Column(
-                    modifier = Modifier.weight(1f).verticalScroll(scrollState)
-                ) {
-                    state.messages[selectedUser]?.forEach { message ->
-                        logger.info("message: $message")
-                        ChatMessage(message)
-                    }
+        Column(Modifier.background(Color.Red).fillMaxSize()) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                state.messages[selectedUser]?.let {
+                    Messages(it)
                 }
             }
-            SendMessage(modifier = Modifier.fillMaxHeight(1f)) {
+            SendMessage(modifier = Modifier.fillMaxHeight(.2f)) {
                 val message = Message(
                     content = it,
                     date = LocalDateTime.now().toKotlinLocalDateTime(),
@@ -176,6 +163,30 @@ class MainScreen : Screen {
                 coroutineScope.launch {
                     messageService.sendMessage(selectedUser, message)
                 }
+            }
+        }
+    }
+
+    @Composable
+    fun Messages(messages: List<Message>) {
+        val listState = rememberLazyListState()
+        if (messages.isNotEmpty()) {
+            LaunchedEffect(messages.last()) {
+                listState.animateScrollToItem(messages.lastIndex, scrollOffset = 2)
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(start = 4.dp, end = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            state = listState,
+        ) {
+            item { Spacer(Modifier.size(20.dp)) }
+            items(messages) {
+                ChatMessage(it)
+            }
+            item {
+                Box(Modifier.height(70.dp))
             }
         }
     }

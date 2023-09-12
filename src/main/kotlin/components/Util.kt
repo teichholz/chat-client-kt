@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
+import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Modifier
@@ -46,7 +46,7 @@ fun ChatMessage(sender: Sender, content: @Composable () -> Unit) {
     val bottomStart = if (sender == Sender.Self) 0.dp else 10.dp
     val bottomEnd = if (sender == Sender.Other) 0.dp else 10.dp
     val card = @Composable {
-        Card(
+        Surface (
             shape = RoundedCornerShape(10.dp, 10.dp, bottomStart, bottomEnd),
             elevation = 0.dp
         ) { content() }

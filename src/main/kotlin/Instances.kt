@@ -50,14 +50,15 @@ object Instances {
     var httpClient: HttpClient = httpClientFactory()
 }
 
-fun reset() {
+fun resetApplication() {
+    store = EmptyStore
     Instances.userService = userServiceFactory()
     Instances.messageService = messageServiceFactory()
     Instances.httpClient = httpClientFactory()
 }
 
-fun HttpClient.installAuth(username: String, password: String): HttpClient {
-    return config {
+fun HttpClient.installAuth(username: String, password: String) {
+    Instances.httpClient = config {
         install(Auth) {
             basic {
                 credentials {

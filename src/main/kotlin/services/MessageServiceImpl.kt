@@ -10,7 +10,6 @@ import chat.commons.protocol.ack
 import chat.commons.protocol.isMessage
 import chat.commons.protocol.message
 import chat.commons.routing.ReceiverPayload
-import installAuth
 import io.ktor.client.plugins.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
@@ -55,7 +54,7 @@ class MessageServiceImpl : MessageService {
     }
 
     context(CoroutineScope)
-    override fun connectWebsockets(user: CurrentUser) {
+    override suspend fun connectWebsockets(user: CurrentUser) {
         fun go(endpoint: String, block: suspend DefaultClientWebSocketSession.() -> Unit) {
             launch {
                 Instances.httpClient.webSocket("ws://127.0.0.1:8080/$endpoint") {

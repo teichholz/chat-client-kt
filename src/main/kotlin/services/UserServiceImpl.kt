@@ -41,7 +41,7 @@ class UserServiceImpl : UserService {
 
         val user = CurrentUser(id = body.id, name = name, icon = Any())
         store = CoroutineScope(SupervisorJob()).createStore(user)
-        Instances.httpClient = Instances.httpClient.installAuth(user.name, user.id.toString())
+        Instances.httpClient.installAuth(user.name, user.id.toString())
     }
 
     override suspend fun register(name: String) {
@@ -51,7 +51,7 @@ class UserServiceImpl : UserService {
 
         val user = CurrentUser(id = body.id, name = name, icon = Any())
         store = CoroutineScope(SupervisorJob()).createStore(user)
-        Instances.httpClient = Instances.httpClient.installAuth(user.name, user.id.toString())
+        Instances.httpClient.installAuth(user.name, user.id.toString())
     }
 
     override suspend fun logout() {
