@@ -23,7 +23,6 @@ val prod = true
 
 val userServiceFactory = { if (prod) UserServiceImpl() else UserServiceMock() }
 val messageServiceFactory = { if (prod) MessageServiceImpl() else MessageServiceMock() }
-// TODO Snackbar for http errors
 val httpClientFactory = {
     HttpClient(CIO) {
         install(WebSockets) {
@@ -40,6 +39,15 @@ val httpClientFactory = {
                 isLenient = true
                 ignoreUnknownKeys = true
             })
+        }
+        expectSuccess = true
+        HttpResponseValidator {
+            handleResponseExceptionWithRequest { exception, request ->
+                val clientException = exception as? ClientRequestException ?: return@handleResponseExceptionWithRequest
+                val exceptionResponse = clientException.response
+                val status = exceptionResponse.status
+                snackbar.showSnackbar("$status Http Error: $exceptionResponse")
+            }
         }
         defaultRequest {
             headers {
@@ -63,18 +71,12 @@ object Instances {
 
 fun resetApplication() {
     store = EmptyStore
-    user = null
-    password = null
     Instances.userService = userServiceFactory()
     Instances.messageService = messageServiceFactory()
     Instances.httpClient = httpClientFactory()
 }
 
-var user: String? = null
-var password: String? = null
 fun HttpClient.installAuth(username: String, pass: String) {
-    user = username
-    password = pass
     Instances.httpClient = config {
         install(Auth) {
             basic {
@@ -92,8 +94,8 @@ fun HttpClient.installAuth(username: String, pass: String) {
  */
 suspend fun HttpClient.webSocketAuth(endpoint: String, block: suspend DefaultClientWebSocketSession.() -> Unit) {
     webSocket("ws://127.0.0.1:8080/$endpoint", {
-        val user = user ?: throw IllegalStateException("User not set")
-        val password = password ?: throw IllegalStateException("Password not set")
+        val user = store.currentUser.name
+        val password = store.currentUser.id
         val basic = "$user:$password".encodeBase64()
         header(HttpHeaders.Authorization, "Basic $basic")
     }) {

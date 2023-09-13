@@ -104,6 +104,8 @@ class MessageServiceImpl : MessageService {
                 throw IllegalStateException("Received non-message protocol")
             }
 
+            logger.info("Received message $protocol")
+
             protocol.message {
                 logger.info("Received message $it")
 
