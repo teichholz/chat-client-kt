@@ -19,7 +19,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.onClick
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
@@ -47,6 +49,7 @@ import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import components.SendMessage
 import components.withVerticalScroll
 import kotlinx.coroutines.launch
+import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
 import logger.LoggerDelegate
@@ -57,6 +60,7 @@ import model.Sender
 import store
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 class MainScreen : Screen {
     val logger by LoggerDelegate()
@@ -176,14 +180,25 @@ class MainScreen : Screen {
             }
         }
 
+        val groups = messages.groupByTo(TreeMap()) { it.date.date }
+
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(start = 4.dp, end = 4.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             state = listState,
         ) {
             item { Spacer(Modifier.size(20.dp)) }
-            items(messages) {
-                ChatMessage(it)
+            groups.forEach { (date, messages) ->
+                item {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                        Card(shape = RoundedCornerShape(5.dp)) {
+                            Text(date.toJavaLocalDate().format(DateTimeFormatter.ofPattern("dd.M")))
+                        }
+                    }
+                }
+                items(messages) {
+                    ChatMessage(it)
+                }
             }
             item {
                 Box(Modifier.height(70.dp))
