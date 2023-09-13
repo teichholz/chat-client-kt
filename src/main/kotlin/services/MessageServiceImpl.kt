@@ -104,11 +104,7 @@ class MessageServiceImpl : MessageService {
                 throw IllegalStateException("Received non-message protocol")
             }
 
-            logger.info("Received message $protocol")
-
             protocol.message {
-                logger.info("Received message $it")
-
                 val from = it.payload.from.name
                 val to = it.payload.to.name
                 val content = it.payload.message
@@ -118,9 +114,10 @@ class MessageServiceImpl : MessageService {
                     throw IllegalStateException("Received message from self")
                     //store.send(Action.SendMessage(OnlineUser(to, Any()), Message(content = content, date = sent, sender = Sender.Self)))
                 } else {
+                    logger.info("Received message ${it.payload}")
                     store.send(
                         Action.ReceiveMessage(
-                            OnlineUser(from, Any()),
+                            OnlineUser(from),
                             Message(content = content, date = sent, sender = Sender.Other)
                         )
                     )

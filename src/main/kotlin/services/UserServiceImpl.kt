@@ -26,7 +26,7 @@ class UserServiceImpl : UserService {
         val response: List<ReceiverPayload> = Instances.httpClient.get(Users.Registered()).body()
 
         return response.map {
-            OnlineUser(name = it.name, icon = Any())
+            OnlineUser(name = it.name, icon = "")
         }
     }
 
