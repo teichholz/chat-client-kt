@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
@@ -21,18 +22,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import logger.LoggerDelegate
 import okio.Path.Companion.toPath
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 
 class LoginScreen : Screen {
+    val logger by LoggerDelegate()
+
     override val key = uniqueScreenKey
 
     @Composable
@@ -56,7 +63,16 @@ class LoginScreen : Screen {
             ) {
                 TextField(
                     name,
-                    modifier = Modifier,
+                    singleLine = true,
+                    modifier = Modifier.onKeyEvent {
+                        if (it.key == Key.Enter) {
+                            scope.launch {
+                                userService.login(name)
+                                navigator.replace(MainScreen())
+                            }
+                        }
+                        true
+                    },
                     onValueChange = { name = it },
                     label = { Text("Enter name") })
 
@@ -68,7 +84,6 @@ class LoginScreen : Screen {
                                 navigator.replace(MainScreen())
                             }
                         },
-                        enabled = !userService.isNameTaken(name)
                     ) {
                         Text("Register")
                     }
@@ -79,7 +94,6 @@ class LoginScreen : Screen {
                                 navigator.replace(MainScreen())
                             }
                         },
-                        enabled = !userService.isNameTaken(name)
                     ) {
                         Text("Login")
                     }

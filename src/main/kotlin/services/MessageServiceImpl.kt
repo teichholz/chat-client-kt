@@ -62,7 +62,7 @@ class MessageServiceImpl : MessageService {
                     logger.info("Connected to server via $endpoint websocket")
 
                     val auth = chat.commons.protocol.auth {
-                        payload = AuthPayloadSocket(lastMessage = 0)
+                        payload = AuthPayloadSocket(lastMessage = store.received + store.sent)
                     }
 
                     sendSerialized(auth)
@@ -110,11 +110,15 @@ class MessageServiceImpl : MessageService {
                 val content = it.payload.message
                 val sent = it.payload.sent
 
+                logger.info("Received message ${it.payload}")
                 if (from == store.currentUser.name) {
-                    throw IllegalStateException("Received message from self")
-                    //store.send(Action.SendMessage(OnlineUser(to, Any()), Message(content = content, date = sent, sender = Sender.Self)))
+                    store.send(
+                        Action.SendMessage(
+                            OnlineUser(to),
+                            Message(content = content, date = sent, sender = Sender.Self)
+                        )
+                    )
                 } else {
-                    logger.info("Received message ${it.payload}")
                     store.send(
                         Action.ReceiveMessage(
                             OnlineUser(from),

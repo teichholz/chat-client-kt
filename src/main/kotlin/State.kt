@@ -9,6 +9,7 @@ import model.CurrentUser
 import model.Message
 import model.OnlineUser
 import model.Sender
+import model.confirm
 
 val logger = getLogger("Store")
 
@@ -53,7 +54,22 @@ fun reducer(state: State, action: Action): State =
 
             val newMessages = (state.messages[action.to] ?: listOf()) + action.message
             state.copy(
+                sent = state.sent + 1,
                 messages = state.messages + (action.to to newMessages)
+            )
+        }
+
+        is Action.ConfirmSentMessage -> {
+            val messages = state.messages[action.to]?.toMutableList() ?: throw IllegalArgumentException("Cannot confirm message for unknown user")
+
+            val index = messages.indexOfFirst { it.content == action.message.content }
+            if (messages[index].sender == Sender.Other) {
+                throw IllegalArgumentException("Cannot confirm message from other user")
+            }
+            messages[index] = messages[index].confirm()
+
+            state.copy(
+                messages = state.messages + (action.to to messages)
             )
         }
 
@@ -78,16 +94,19 @@ interface Store {
     val currentUser get() = state.currentUser
     val messages get() = state.messages
     val received get() = state.received
+    val sent get() = state.sent
 }
 
 data class State(
     var currentUser: CurrentUser,
 
     val received: Long = 0,
+    val sent: Long = 0,
     val messages: Map<OnlineUser, List<Message>> = mapOf()
 )
 
 sealed interface Action {
     data class SendMessage(val to: OnlineUser, val message: Message) : Action
+    data class ConfirmSentMessage(val to: OnlineUser, val message: Message) : Action
     data class ReceiveMessage(val from: OnlineUser, val message: Message) : Action
 }

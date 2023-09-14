@@ -35,10 +35,9 @@ var canLogout by mutableStateOf(false)
 
 lateinit var snackbar: SnackbarHostState
 
-
 fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
-        MaterialTheme {
+        AppTheme {
             Navigator(LoginScreen()) {
                 MaterialTheme {
                     snackbar = remember { SnackbarHostState() }

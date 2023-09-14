@@ -20,6 +20,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -29,7 +32,15 @@ fun SendMessage(modifier: Modifier = Modifier, sendMessage: (String) -> Unit) {
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colors.background)
-            .padding(10.dp),
+            .padding(10.dp)
+            .onKeyEvent {
+                if (inputText.isEmpty()) return@onKeyEvent true
+                if (it.isShiftPressed && it.key == androidx.compose.ui.input.key.Key.Enter) {
+                    sendMessage(inputText)
+                    inputText = ""
+                }
+                true
+            },
         colors = TextFieldDefaults.textFieldColors(backgroundColor = Color.White),
         value = inputText,
         placeholder = {

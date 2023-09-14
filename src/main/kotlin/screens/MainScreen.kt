@@ -26,6 +26,7 @@ import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.ListItem
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
@@ -36,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -150,7 +152,17 @@ class MainScreen : Screen {
         val state by store.stateFlow.collectAsState()
         val selectedUser = model.selectedUser!!
 
-        Column(Modifier.background(Color.Red).fillMaxSize()) {
+        Column(Modifier.fillMaxWidth().fillMaxHeight()) {
+            Card(shape = RoundedCornerShape(0.dp, 0.dp, 5.dp, 5.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        selectedUser.name,
+                        color = MaterialTheme.colors.onSurface,
+                        style = MaterialTheme.typography.subtitle1
+                    )
+
+                }
+            }
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -191,7 +203,7 @@ class MainScreen : Screen {
             groups.forEach { (date, messages) ->
                 item {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                        Card(shape = RoundedCornerShape(5.dp)) {
+                        Card {
                             Text(date.toJavaLocalDate().format(DateTimeFormatter.ofPattern("dd.M")))
                         }
                     }
