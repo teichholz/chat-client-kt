@@ -33,6 +33,7 @@ dependencies {
     implementation("media.kamel:kamel-image:$kamelVersion")
     implementation("br.com.devsrsouza.compose.icons:font-awesome:$iconsVersion")
     implementation("com.squareup.okio:okio:$okioVersion")
+    testImplementation("com.squareup.okio:okio-fakefilesystem:$okioVersion")
 
     implementation("io.ktor:ktor-client-websockets:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
@@ -48,11 +49,17 @@ dependencies {
     // coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing")
+
     // arrow
     implementation("io.arrow-kt:arrow-core:1.2.0")
     implementation("io.arrow-kt:arrow-fx-coroutines:1.2.0")
     implementation("io.arrow-kt:arrow-fx-stm:1.2.0")
     implementation("io.arrow-kt:arrow-resilience:1.2.0")
+
+    // kotest
+    testImplementation("io.kotest:kotest-runner-junit5:5.6.0")
+    testImplementation("io.kotest:kotest-assertions-core:5.6.0")
+    testImplementation("io.kotest:kotest-property:5.6.0")
 
     // logging
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
@@ -61,6 +68,10 @@ dependencies {
 
     // commons
     implementation("chat.commons:chat-commons:1.2")
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
 
 tasks.withType<KotlinCompile> {

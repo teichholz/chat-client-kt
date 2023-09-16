@@ -1,13 +1,23 @@
 package services
 
+import EmptyStore
+import Store
 import model.Message
 import model.OnlineUser
+import okio.Path
 
 interface CacheService {
-    fun initialize()
+    val store: Store
 
-    fun cache(user: OnlineUser, messages: List<Message>)
+    fun cache() {
+        require(store !is EmptyStore) { "Store must be initialized" }
+
+        store.state.messages.forEach { (user, messages) ->
+            cache(user, messages)
+        }
+    }
     fun cache(entry: Pair<OnlineUser, List<Message>>) = cache(entry.first, entry.second)
+    fun cache(user: OnlineUser, messages: List<Message>)
 
-    fun load(user: OnlineUser): List<Message>
+    fun load(user: OnlineUser)
 }

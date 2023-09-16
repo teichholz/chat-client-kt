@@ -1,35 +1,86 @@
 package services
 
 import Action
+import Store
 import arrow.core.Either
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import logger.LoggerDelegate
 import model.Message
 import model.OnlineUser
 import model.Sender
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
-import okio.buffer
-import okio.sink
-import okio.source
-import store
 
-class CacheServiceImpl : CacheService {
+class CacheServiceImpl(override val store: Store, val fileSystem: FileSystem = FileSystem.SYSTEM) : CacheService {
+    val logger by LoggerDelegate()
     lateinit var cacheDir: Path
+    val serializer = Json
 
-    var serializer = Json
+    var initalized = false
 
-    override fun initialize() {
+    override fun cache(user: OnlineUser, messages: List<Message>) {
+        initializeIfNeeded()
+        val file = userFile(user)
+
+        logger.info("Writing messages for $user to $file")
+        fileSystem.write(file) {
+            for (message in messages) {
+                val string = serializer.encodeToString(message)
+                writeUtf8(string)
+                writeUtf8("\n")
+            }
+        }
+    }
+
+    override fun load(user: OnlineUser) {
+        initializeIfNeeded()
+        val messages : MutableList<Message> = mutableListOf()
+        val file = userFile(user)
+
+        logger.info("Loading messages for ${user.name} from $file")
+        fileSystem.read(file) {
+            while (true) {
+                val line = readUtf8Line() ?: break
+                val message: Message = serializer.decodeFromString(line)
+                messages.add(message)
+            }
+        }
+
+        messages.forEach {
+            when (it.sender) {
+                is Sender.Other -> {
+                    store.send(Action.ReceiveMessage(user, it))
+                }
+                is Sender.Self -> {
+                    store.send(Action.SendMessage(user, it))
+                }
+            }
+        }
+    }
+
+    fun initializeIfNeeded() {
+        if (! initalized) {
+            initialize()
+        }
+    }
+
+    fun initialize(): Path? {
         val cacheDir: Path? = cacheDir()
 
         cacheDir?.let { dir ->
             Either.catch {
-                FileSystem.SYSTEM.createDirectory(dir)
+                fileSystem.createDirectories(dir)
             }.onRight {
                 this.cacheDir = dir
+            }.onLeft {
+                throw it
             }
         }
+
+        initalized = true
+        return cacheDir
     }
 
     fun cacheDir(): Path?  {
@@ -47,50 +98,9 @@ class CacheServiceImpl : CacheService {
         return cache?.toPath()?.resolve("kt-chat-app")
     }
 
-    override fun cache(user: OnlineUser, messages: List<Message>) {
-        val dir = userDir(user)
-
-        dir.toFile().sink().buffer().use { sink ->
-            for (message in messages) {
-                val string = serializer.encodeToString(message)
-                sink.writeUtf8(string)
-                sink.writeUtf8("\n")
-            }
-        }
-    }
-
-    override fun load(user: OnlineUser): List<Message> {
-        val dir = userDir(user)
-
-        val messages : MutableList<Message> = mutableListOf()
-        dir.toFile().source().use {source ->
-            source.buffer().use { buffer ->
-                while (true) {
-                    val line = buffer.readUtf8Line() ?: break
-                    val message: Message = serializer.decodeFromString(line)
-                    messages.add(message)
-                }
-            }
-        }
-
-        messages.forEach {
-            when (it.sender) {
-                is Sender.Other -> {
-                    store.send(Action.ReceiveMessage(user, it))
-                }
-                is Sender.Self -> {
-                    store.send(Action.SendMessage(user, it))
-                }
-            }
-        }
-
-
-        return emptyList()
-    }
-
-    fun userDir(user: OnlineUser): Path {
-        val dir = cacheDir.resolve("user").resolve(user.name)
-        FileSystem.SYSTEM.createDirectory(dir)
-        return dir
+    fun userFile(user: OnlineUser): Path {
+        val dir = cacheDir / "user"
+        fileSystem.createDirectories(dir)
+        return dir / user.name
     }
 }

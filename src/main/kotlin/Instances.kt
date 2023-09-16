@@ -12,6 +12,7 @@ import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
 import kotlinx.serialization.json.Json
+import services.CacheServiceImpl
 import services.MessageService
 import services.MessageServiceImpl
 import services.MessageServiceMock
@@ -21,9 +22,10 @@ import services.UserServiceMock
 
 val prod = true
 
-val userServiceFactory = { if (prod) UserServiceImpl() else UserServiceMock() }
-val messageServiceFactory = { if (prod) MessageServiceImpl() else MessageServiceMock() }
-val httpClientFactory = {
+val userServiceFactory by lazy { if (prod) UserServiceImpl() else UserServiceMock() }
+val messageServiceFactory by lazy { if (prod) MessageServiceImpl() else MessageServiceMock() }
+val cacheServiceFactory by lazy { CacheServiceImpl(store) }
+val httpClientFactory by lazy {
     HttpClient(CIO) {
         install(WebSockets) {
             contentConverter = KotlinxWebsocketSerializationConverter(Json {
@@ -63,17 +65,18 @@ val httpClientFactory = {
 }
 
 object Instances {
-    var userService: UserService = userServiceFactory()
-    var messageService: MessageService = messageServiceFactory()
-
-    var httpClient: HttpClient = httpClientFactory()
+    var userService: UserService = userServiceFactory
+    var messageService: MessageService = messageServiceFactory
+    var cacheService: CacheServiceImpl = cacheServiceFactory
+    var httpClient: HttpClient = httpClientFactory
 }
 
 fun resetApplication() {
     store = EmptyStore
-    Instances.userService = userServiceFactory()
-    Instances.messageService = messageServiceFactory()
-    Instances.httpClient = httpClientFactory()
+    Instances.userService = userServiceFactory
+    Instances.messageService = messageServiceFactory
+    Instances.cacheService = cacheServiceFactory
+    Instances.httpClient = httpClientFactory
 }
 
 fun HttpClient.installAuth(username: String, pass: String) {

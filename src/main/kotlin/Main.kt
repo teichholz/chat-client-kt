@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +26,7 @@ import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import kotlinx.coroutines.launch
 import screens.LoginScreen
 import kotlin.properties.Delegates
 
@@ -41,6 +43,8 @@ fun main() = application {
             Navigator(LoginScreen()) {
                 MaterialTheme {
                     snackbar = remember { SnackbarHostState() }
+                    val scope = rememberCoroutineScope()
+
                     Scaffold(
                         snackbarHost = {
                             SnackbarHost(hostState = snackbar)
@@ -55,8 +59,11 @@ fun main() = application {
                                     if (canLogout) {
                                         val navigator = LocalNavigator.currentOrThrow
                                         IconButton({
-                                            resetApplication()
-                                            navigator.replace(LoginScreen())
+                                            scope.launch {
+                                                Instances.userService.logout()
+                                                resetApplication()
+                                                navigator.replace(LoginScreen())
+                                            }
                                         }) {
                                             Icon(
                                                 imageVector = Icons.Default.ExitToApp,

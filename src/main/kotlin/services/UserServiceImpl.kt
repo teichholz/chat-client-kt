@@ -4,7 +4,6 @@ import Instances
 import Users
 import chat.commons.routing.ReceiverPayload
 import chat.commons.routing.ReceiverPayloadLogin
-import chat.commons.routing.ReceiverPayloadLogout
 import chat.commons.routing.ReceiverPayloadRegister
 import chat.commons.routing.ReceiverPayloadWithId
 import createStore
@@ -41,6 +40,9 @@ class UserServiceImpl : UserService {
 
         val user = CurrentUser(id = body.id, name = name, icon = Any())
         store = CoroutineScope(SupervisorJob()).createStore(user)
+        getAllUsers().forEach {
+            Instances.cacheService.load(it)
+        }
         Instances.httpClient.installAuth(user.name, user.id.toString())
     }
 
@@ -51,14 +53,18 @@ class UserServiceImpl : UserService {
 
         val user = CurrentUser(id = body.id, name = name, icon = Any())
         store = CoroutineScope(SupervisorJob()).createStore(user)
+        getAllUsers().forEach {
+            Instances.cacheService.load(it)
+        }
         Instances.httpClient.installAuth(user.name, user.id.toString())
     }
 
     override suspend fun logout() {
-        store.currentUser?.let {
-            Instances.httpClient.post(Users.Logout()) {
-                setBody(ReceiverPayloadLogout(it.id, it.name)) // TODO
-            }
-        }
+        Instances.cacheService.cache()
+//        store.currentUser?.let {
+//            Instances.httpClient.post(Users.Logout()) {
+//                setBody(ReceiverPayloadLogout(it.id, it.name)) // TODO
+//            }
+//        }
     }
 }
