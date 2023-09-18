@@ -4,7 +4,6 @@ import EmptyStore
 import Store
 import model.Message
 import model.OnlineUser
-import okio.Path
 
 interface CacheService {
     val store: Store

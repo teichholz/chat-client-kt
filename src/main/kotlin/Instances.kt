@@ -20,7 +20,7 @@ import services.UserService
 import services.UserServiceImpl
 import services.UserServiceMock
 
-val prod = true
+val prod = false
 
 val userServiceFactory by lazy { if (prod) UserServiceImpl() else UserServiceMock() }
 val messageServiceFactory by lazy { if (prod) MessageServiceImpl() else MessageServiceMock() }

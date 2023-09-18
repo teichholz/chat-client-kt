@@ -14,8 +14,6 @@ import store
 import java.time.LocalDateTime
 
 interface MessageService {
-    fun messagesFor(user: OnlineUser): List<Message>
-
     suspend fun sendMessage(to: OnlineUser, message: Message)
 
     context(DefaultClientWebSocketSession)

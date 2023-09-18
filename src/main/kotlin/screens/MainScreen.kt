@@ -45,11 +45,12 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import components.SendMessage
 import components.withVerticalScroll
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toJavaLocalDateTime
@@ -63,6 +64,7 @@ import store
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.time.Duration.Companion.seconds
 
 class MainScreen : Screen {
     val logger by LoggerDelegate()
@@ -90,6 +92,7 @@ class MainScreen : Screen {
         val userService = Instances.userService
 
         var users: List<OnlineUser> by remember { mutableStateOf(listOf()) }
+        var filteredUsers: List<OnlineUser> by remember { mutableStateOf(listOf()) }
 
         withVerticalScroll { scrollState ->
             Column(
@@ -97,15 +100,26 @@ class MainScreen : Screen {
                     .verticalScroll(scrollState)
             ) {
                 UserSearch()
-                users.forEach {
+                filteredUsers.forEach {
                     OnlineUserListItem(it)
                     Divider(modifier = Modifier.fillMaxWidth(), thickness = 1.dp)
                 }
             }
         }
 
+        model.userSearch.let { search ->
+            filteredUsers = if (search.isEmpty()) {
+                users
+            } else {
+                users.filter { it.name.contains(search, ignoreCase = true) }
+            }
+        }
+
         LaunchedEffect(Unit) {
-            users = userService.getAllUsers()
+            while (isActive) {
+                users = userService.getAllUsers()
+                delay(5.seconds)
+            }
         }
     }
 
@@ -123,20 +137,21 @@ class MainScreen : Screen {
     @Composable
     fun OnlineUserListItem(user: OnlineUser) {
         var inside by remember { mutableStateOf(false) }
+        val background = if (inside) MaterialTheme.colors.secondary else MaterialTheme.colors.surface
         ListItem(icon = {
             Icon(
                 painter = painterResource("user-128.png"),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(.2f)
             )
-        }, modifier = Modifier.onPointerEvent(PointerEventType.Enter) {
+        }, modifier = Modifier.background(background).onPointerEvent(PointerEventType.Enter) {
             inside = true
         }.onPointerEvent(PointerEventType.Exit) {
             inside = false
         }.onClick {
             model.setSelectedUser(user)
         }) {
-            Text(user.name, fontSize = if (inside) 25.sp else 20.sp)
+            Text(user.name, color = if (inside) MaterialTheme.colors.onSecondary else MaterialTheme.colors.onSurface)
         }
     }
 
@@ -154,7 +169,7 @@ class MainScreen : Screen {
 
         Column(Modifier.fillMaxWidth().fillMaxHeight()) {
             Card(shape = RoundedCornerShape(0.dp, 0.dp, 5.dp, 5.dp)) {
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.fillMaxWidth().padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         selectedUser.name,
                         color = MaterialTheme.colors.onSurface,

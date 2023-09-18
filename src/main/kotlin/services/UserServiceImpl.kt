@@ -19,7 +19,7 @@ import model.OnlineUser
 import store
 
 class UserServiceImpl : UserService {
-    val logger by LoggerDelegate()
+    private val logger by LoggerDelegate()
 
     override suspend fun getAllUsers(): List<OnlineUser> {
         val response: List<ReceiverPayload> = Instances.httpClient.get(Users.Registered()).body()

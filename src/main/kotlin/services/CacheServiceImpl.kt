@@ -3,6 +3,7 @@ package services
 import Action
 import Store
 import arrow.core.Either
+import arrow.core.raise.catch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import logger.LoggerDelegate
@@ -14,23 +15,27 @@ import okio.Path
 import okio.Path.Companion.toPath
 
 class CacheServiceImpl(override val store: Store, val fileSystem: FileSystem = FileSystem.SYSTEM) : CacheService {
-    val logger by LoggerDelegate()
-    lateinit var cacheDir: Path
-    val serializer = Json
+    private val logger by LoggerDelegate()
+    private lateinit var cacheDir: Path
+    private val serializer = Json
 
-    var initalized = false
+    private var initalized = false
 
     override fun cache(user: OnlineUser, messages: List<Message>) {
         initializeIfNeeded()
         val file = userFile(user)
 
         logger.info("Writing messages for $user to $file")
-        fileSystem.write(file) {
-            for (message in messages) {
-                val string = serializer.encodeToString(message)
-                writeUtf8(string)
-                writeUtf8("\n")
+        catch({
+            fileSystem.write(file) {
+                for (message in messages) {
+                    val string = serializer.encodeToString(message)
+                    writeUtf8(string)
+                    writeUtf8("\n")
+                }
             }
+        }) {
+            logger.error("Failed to write messages for $user to $file", it)
         }
     }
 
@@ -40,12 +45,16 @@ class CacheServiceImpl(override val store: Store, val fileSystem: FileSystem = F
         val file = userFile(user)
 
         logger.info("Loading messages for ${user.name} from $file")
-        fileSystem.read(file) {
-            while (true) {
-                val line = readUtf8Line() ?: break
-                val message: Message = serializer.decodeFromString(line)
-                messages.add(message)
+        catch({
+            fileSystem.read(file) {
+                while (true) {
+                    val line = readUtf8Line() ?: break
+                    val message: Message = serializer.decodeFromString(line)
+                    messages.add(message)
+                }
             }
+        }) {
+            logger.error("Failed to load messages for ${user.name} from $file", it)
         }
 
         messages.forEach {

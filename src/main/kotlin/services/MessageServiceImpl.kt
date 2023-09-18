@@ -16,7 +16,6 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.datetime.toKotlinLocalDateTime
 import logger.LoggerDelegate
 import model.CurrentUser
 import model.Message
@@ -24,22 +23,11 @@ import model.OnlineUser
 import model.Sender
 import store
 import webSocketAuth
-import java.time.LocalDateTime
 
 class MessageServiceImpl : MessageService {
-    val logger by LoggerDelegate()
+    private val logger by LoggerDelegate()
 
-    val messageQueue: Channel<Protocol.MESSAGE> = Channel(Channel.UNLIMITED)
-
-    override fun messagesFor(user: OnlineUser): List<Message> {
-        return (0..15).map {
-            Message(
-                "Message $it: ${user.name}",
-                LocalDateTime.now().plusHours(it.toLong()).toKotlinLocalDateTime(),
-                if (it % 2 == 0) Sender.Self else Sender.Other
-            )
-        }
-    }
+    private val messageQueue: Channel<Protocol.MESSAGE> = Channel(Channel.UNLIMITED)
 
     override suspend fun sendMessage(to: OnlineUser, message: Message) {
         val protocolMessage = message {
