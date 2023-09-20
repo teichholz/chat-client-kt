@@ -49,14 +49,12 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import components.SendMessage
 import components.withVerticalScroll
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
 import logger.LoggerDelegate
-import model.MainScreenModel
+import model.MainScreenViewModel
 import model.Message
 import model.OnlineUser
 import model.Sender
@@ -64,13 +62,12 @@ import store
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
-import kotlin.time.Duration.Companion.seconds
 
 class MainScreen : Screen {
     val logger by LoggerDelegate()
     override val key = uniqueScreenKey
 
-    val model: MainScreenModel = MainScreenModel()
+    val model: MainScreenViewModel = MainScreenViewModel()
 
     @Composable
     override fun Content() {
@@ -89,36 +86,16 @@ class MainScreen : Screen {
     @Preview
     @Composable
     fun UserArea() {
-        val userService = Instances.userService
-
-        var users: List<OnlineUser> by remember { mutableStateOf(listOf()) }
-        var filteredUsers: List<OnlineUser> by remember { mutableStateOf(listOf()) }
-
         withVerticalScroll { scrollState ->
             Column(
                 modifier = Modifier.fillMaxWidth(.2f)
                     .verticalScroll(scrollState)
             ) {
                 UserSearch()
-                filteredUsers.forEach {
+                model.filteredLatestOnlineUsers.forEach {
                     OnlineUserListItem(it)
                     Divider(modifier = Modifier.fillMaxWidth(), thickness = 1.dp)
                 }
-            }
-        }
-
-        model.userSearch.let { search ->
-            filteredUsers = if (search.isEmpty()) {
-                users
-            } else {
-                users.filter { it.name.contains(search, ignoreCase = true) }
-            }
-        }
-
-        LaunchedEffect(Unit) {
-            while (isActive) {
-                users = userService.getAllUsers()
-                delay(5.seconds)
             }
         }
     }

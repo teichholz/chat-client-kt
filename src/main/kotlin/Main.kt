@@ -63,7 +63,6 @@ fun main() = application {
                                         IconButton({
                                             scope.launch {
                                                 Instances.userService.logout()
-                                                resetApplication()
                                                 navigator.replace(LoginScreen())
                                             }
                                         }) {

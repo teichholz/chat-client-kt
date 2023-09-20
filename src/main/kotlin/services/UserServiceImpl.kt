@@ -16,6 +16,7 @@ import kotlinx.coroutines.SupervisorJob
 import logger.LoggerDelegate
 import model.CurrentUser
 import model.OnlineUser
+import resetApplication
 import store
 
 class UserServiceImpl : UserService {
@@ -61,6 +62,7 @@ class UserServiceImpl : UserService {
 
     override suspend fun logout() {
         Instances.cacheService.cache()
+        resetApplication()
 //        store.currentUser?.let {
 //            Instances.httpClient.post(Users.Logout()) {
 //                setBody(ReceiverPayloadLogout(it.id, it.name)) // TODO
